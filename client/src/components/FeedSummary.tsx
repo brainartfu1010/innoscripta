@@ -11,13 +11,14 @@ interface FeedSummaryProps {
 export function FeedSummary({ preferences, filters, keyword }: FeedSummaryProps) {
   const sources = filters.source ? [filters.source] : preferences.sources;
   const categories = filters.category ? [filters.category] : preferences.categories;
+  const authors = filters.author.trim() ? [filters.author.trim()] : preferences.authors;
   const parts: string[] = [];
 
   if (keyword) parts.push(`“${keyword}”`);
   if (sources.length > 0) parts.push(labelList(sources.map((id) => sourceName(id))));
   else parts.push("all sources");
   if (categories.length > 0) parts.push(labelList(categories.map((id) => categoryLabel(id))));
-  if (preferences.authors.length > 0) parts.push(`authors: ${preferences.authors.join(", ")}`);
+  if (authors.length > 0) parts.push(`authors: ${authors.join(", ")}`);
   if (filters.from || filters.to) {
     parts.push(`${filters.from || "…"} → ${filters.to || "…"}`);
   }

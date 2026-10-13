@@ -5,6 +5,7 @@ import type { SourceInfo } from "../api";
 export interface FeedFilters {
   source: SourceId | "";
   category: CategoryId | "";
+  author: string;
   from: string;
   to: string;
 }
@@ -98,6 +99,15 @@ export function SearchForm({
           </select>
         </label>
         <label className="field">
+          <span>Author</span>
+          <input
+            value={filters.author}
+            onChange={(event) => onFiltersChange({ ...filters, author: event.target.value })}
+            placeholder="Filter by author"
+            autoComplete="off"
+          />
+        </label>
+        <label className="field">
           <span>From</span>
           <input
             type="date"
@@ -115,8 +125,8 @@ export function SearchForm({
         </label>
       </div>
       <p className="hint">
-        Saved preferences are the default feed. A source or category chosen here overrides that default until you
-        clear filters.
+        My feed preferences are the default. A source, category, or author chosen here overrides that default until
+        you clear filters.
       </p>
       {dateError ? <p className="banner error">The start date is after the end date.</p> : null}
     </form>

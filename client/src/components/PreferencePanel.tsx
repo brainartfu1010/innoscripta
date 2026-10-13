@@ -29,9 +29,9 @@ export function PreferencePanel({
 
   return (
     <aside id="preferences" className={open ? "preferences is-open" : "preferences"}>
-      <h2>Your feed</h2>
+      <h2>My feed</h2>
       <p className="hint">
-        Choose sources, categories, and authors. The choice is saved in this browser only.
+        Personalize the default feed with preferred sources, categories, and authors. Saved in this browser only.
       </p>
 
       <fieldset>

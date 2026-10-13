@@ -1,6 +1,7 @@
 {
   "name": "news-aggregator",
   "private": true,
+  "description": "React + TypeScript news aggregator for the innoscripta frontend take-home",
   "type": "module",
   "engines": {
     "node": ">=20"

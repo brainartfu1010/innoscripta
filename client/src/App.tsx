@@ -13,7 +13,7 @@ import { usePreferences } from "./hooks/usePreferences";
 import { useSourceMeta } from "./hooks/useSourceMeta";
 import { useTheme } from "./hooks/useTheme";
 
-const EMPTY_FILTERS: FeedFilters = { source: "", category: "", from: "", to: "" };
+const EMPTY_FILTERS: FeedFilters = { source: "", category: "", author: "", from: "", to: "" };
 
 export function App() {
   const { keys, revision, save, clear } = useApiKeys();
@@ -33,7 +33,7 @@ export function App() {
       categories: filters.category ? [filters.category] : preferences.categories,
       from: filters.from || undefined,
       to: filters.to || undefined,
-      authors: preferences.authors,
+      authors: filters.author.trim() ? [filters.author.trim()] : preferences.authors,
     }),
     [keyword, filters, preferences],
   );
@@ -78,7 +78,7 @@ export function App() {
               aria-controls="preferences"
               onClick={() => setPreferencesOpen((open) => !open)}
             >
-              {preferencesOpen ? "Hide preferences" : "Preferences"}
+              {preferencesOpen ? "Hide my feed" : "My feed"}
             </button>
           </div>
         </div>

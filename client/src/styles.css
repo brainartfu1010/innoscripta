@@ -592,6 +592,12 @@ select {
   }
 }
 
+@media (min-width: 640px) and (max-width: 699px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 @media (min-width: 700px) {
   .site-header-inner {
     align-items: end;
@@ -608,7 +614,7 @@ select {
   }
 
   .filters {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .article-card {

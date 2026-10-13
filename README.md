@@ -1,8 +1,52 @@
-# Front page
+# Front page — innoscripta take-home
 
-A news aggregator for the innoscripta frontend take-home. The React + TypeScript UI searches and filters articles from three publishers, and a small Node proxy keeps the API keys on the server.
+React + TypeScript news aggregator with a small Node proxy, three live sources, personalized feed preferences, and Docker.
 
-## Quick start
+## Brief checklist
+
+| Requirement | Status | Where |
+| --- | --- | --- |
+| React.js + TypeScript | Done | `client/` |
+| ≥ 3 article sources | Done | Guardian, New York Times, NewsAPI.org |
+| Search by keyword | Done | Search form → `GET /api/articles?q=` |
+| Filter by date | Done | From / To date fields |
+| Filter by category | Done | Category select + My feed preferences |
+| Filter by source | Done | Source select + My feed preferences |
+| Personalized feed (sources, categories, authors) | Done | **My feed** sidebar / mobile panel (`localStorage`) |
+| Mobile-responsive UI | Done | `client/src/styles.css` |
+| Docker + run docs | Done | `Dockerfile`, `docker-compose.yml`, below |
+| DRY / KISS / SOLID | Done | Shared `Article` model + `NewsSource` adapters |
+
+Source choice notes: OpenNews is not an article API, NewsCred is enterprise-only, and BBC has no comparable public search API. “NewsAPI” and “NewsAPI.org” in the brief are the same product, so they count as one source.
+
+## Run with Docker
+
+This is the intended review path.
+
+```bash
+git clone <this-repo>
+cd innoscripta
+cp .env.example .env
+# Optional: fill GUARDIAN_API_KEY, NYT_API_KEY, NEWSAPI_API_KEY
+docker compose up --build
+```
+
+Open **http://localhost:3000**.
+
+What the image does:
+
+1. Installs dependencies
+2. Runs unit tests and TypeScript checks
+3. Builds the React client and Express server
+4. Serves both on port 3000
+
+You can also add keys later in the UI via **Settings** (stored in the browser and sent as headers). Server `.env` keys remain a fallback.
+
+Stop with `Ctrl+C`, or in detached mode use `docker compose down`.
+
+## Local development (without Docker)
+
+Node.js 20+.
 
 ```bash
 npm install
@@ -10,98 +54,71 @@ cp .env.example .env
 npm run dev
 ```
 
-Open http://localhost:5173. Without API keys the app still runs on sample articles so you can review search, filters, and preferences immediately.
+- UI: http://localhost:5173  
+- API: http://localhost:3001 (Vite proxies `/api`)
 
 ```bash
-# Production-style local run (API + built UI on one port)
-npm run verify
-npm start
+npm run verify   # test + typecheck + build
+npm start        # http://localhost:3000
 ```
 
-Open http://localhost:3000 (`PORT` defaults to 3000; `npm run dev` still uses API port 3001 beside Vite).
+## Using the app
 
-```bash
-# Docker (keys optional; sample mode works without them)
-cp .env.example .env
-docker compose up --build
-```
+1. **Settings** — paste Guardian / NYT / NewsAPI keys (or rely on sample articles).
+2. **Search** — keyword plus filters for source, category, author, and date range.
+3. **My feed** — choose preferred sources, categories, and authors. These become the default feed until a search filter overrides them.
 
-Open http://localhost:3000.
-
-## Requirements
-
-| Brief | Where it lives |
-| --- | --- |
-| React + TypeScript | `client/` |
-| At least three sources | The Guardian, The New York Times, NewsAPI.org |
-| Search by keyword; filter by date, category, and source | Search form and `GET /api/articles` |
-| Personalized feed (sources, categories, authors) | Preferences panel, stored in `localStorage` |
-| Mobile layout | `client/src/styles.css` |
-| Docker | `Dockerfile`, `docker-compose.yml` |
-
-OpenNews is a journalism community, not an article API. NewsCred is an enterprise product. BBC does not offer a public search API in the same way. NewsAPI and NewsAPI.org in the brief are the same product, so it counts as one source.
-
-## Architecture
+## Architecture (SOLID)
 
 ```text
 browser  →  Express  →  NewsSource adapters  →  Guardian / NYT / NewsAPI
                 ↑
-         one Article type
+         shared Article type
 ```
 
-`searchArticles` depends on the `NewsSource` interface. Each publisher has its own adapter and maps its payload into the shared `Article` type. Adding a source means a new adapter plus one line in `createSources`. The UI never sees a raw provider response.
+| Principle | How it shows up |
+| --- | --- |
+| Single responsibility | UI components render; `searchArticles` merges; each `*Source` talks to one API |
+| Open/closed | New publisher = new adapter + one line in `createSources` |
+| Liskov | Any `NewsSource` can replace another in `searchArticles` |
+| Interface segregation | Adapters only implement `search` / `isConfigured` |
+| Dependency inversion | Server depends on `NewsSource`, not Guardian/NYT/NewsAPI SDKs |
 
-Preferences are the default feed. Choosing a source or category in the search form overrides that default until the filters are cleared. Author preferences always apply. Nothing here requires an account.
-
-Until API keys are set, the server returns sample articles and says so. When some keys are set, only those sources are queried; missing keys are reported without emptying the feed. Successful live responses are cached for 60 seconds.
+DRY: one `Article` / `ArticleQuery` model in `shared/`.  
+KISS: no accounts, no Redux — preferences and keys stay in `localStorage`.
 
 ## Keys
 
-Use the in-app **Settings** button to paste keys. They stay in this browser’s `localStorage` and are sent only to this app’s API as request headers.
-
-You can also put keys in `.env` on the server; those are used when the browser does not send a value.
-
-| Variable / Settings field | Register |
+| Settings field / env var | Register |
 | --- | --- |
-| `GUARDIAN_API_KEY` / The Guardian | https://open-platform.theguardian.com/access/ |
-| `NYT_API_KEY` / New York Times | https://developer.nytimes.com/ — enable Article Search |
-| `NEWSAPI_API_KEY` / NewsAPI.org | https://newsapi.org/register |
+| The Guardian / `GUARDIAN_API_KEY` | https://open-platform.theguardian.com/access/ |
+| New York Times / `NYT_API_KEY` | https://developer.nytimes.com/ (enable Article Search) |
+| NewsAPI.org / `NEWSAPI_API_KEY` | https://newsapi.org/register |
 
-Do not commit `.env` or paste production keys into a public demo.
+Do not commit `.env`. NewsAPI’s free plan is for local development (~100 req/day, 24h delay). Guardian’s developer key is for non-commercial use.
 
-The NewsAPI developer plan is for local development, allows about 100 requests a day, and delays new articles by 24 hours. The Guardian developer key is for non-commercial use and is enough to run this exercise locally. A public deployment of NewsAPI needs their paid plan.
+## API
+
+- `GET /api/health`
+- `GET /api/meta` — sources and whether each key is present (headers or env)
+- `GET /api/articles?q=&sources=guardian|nyt&categories=technology&from=2026-10-01&to=2026-10-13&authors=Ada%20Lovelace`
+
+Headers (optional, from Settings): `x-api-key-guardian`, `x-api-key-nyt`, `x-api-key-newsapi`.
+
+Guardian/NewsAPI return up to 15 articles each; NYT up to 10. Failed sources are reported in `errors` without clearing the rest. Results are deduped by URL and sorted newest first.
 
 ## Scripts
 
 | Command | Purpose |
 | --- | --- |
-| `npm run dev` | Vite UI + API with hot reload |
-| `npm test` | Server unit tests |
-| `npm run typecheck` | TypeScript for client and server |
-| `npm run build` | Bundle server and client |
+| `npm run dev` | Vite UI + API |
+| `npm test` | Server tests |
+| `npm run typecheck` | Client + server TypeScript |
+| `npm run build` | Production bundles |
 | `npm run verify` | test + typecheck + build |
-| `npm start` | Serve the production build |
-
-## API
-
-`GET /api/health`
-
-`GET /api/meta` — source ids and whether each key is set.
-
-`GET /api/articles?q=&sources=guardian|nyt&categories=technology&from=2026-10-01&to=2026-10-13&authors=Ada%20Lovelace`
-
-Guardian and NewsAPI each return up to 15 articles per request; The New York Times Article Search returns up to 10. One failed source does not empty the feed; its message is returned in `errors`. Results are merged, deduped by URL, and sorted newest first. Author and date windows are applied again after the merge.
-
-## Decisions and limits
-
-- No accounts. The brief asks for a personal feed, and this browser is enough to store it.
-- Author matching is a case-insensitive substring, because the three APIs do not filter authors the same way.
-- NewsAPI headlines do not accept a date range. A search that has a keyword or a date uses their archive endpoint. A date with no keyword uses the required keyword `the` so the range still applies. The default headline call, with no category selected, uses US top headlines because that endpoint requires a country, source list, or category.
-- Category names are normalized. Guardian “sport” becomes “sports”; NewsAPI “entertainment” is used for culture.
-- The first page only. Paging can be added on `NewsSource.search` without changing the UI’s article shape.
+| `npm start` | Serve production build |
+| `docker compose up --build` | Full containerized app |
 
 ## How AI was used
 
-Cursor scaffolded this repository from a design that was fixed first: a server-side proxy, one adapter per publisher, preferences in the browser, and Docker as the run path. The source choice, the shared `Article` model, and the decision to skip accounts were made before the files were generated. The sample-article fallback is there so the UI can be reviewed before live keys are added.
-
-Review the adapters and `searchArticles` before the conversation with the tech lead. The useful explanation is why the proxy exists and what a fourth source would touch.
+Cursor helped implement the scaffold after the design was fixed: server-side proxy, one adapter per publisher, browser preferences/settings, and Docker as the run path. Source selection and the shared `Article` model were deliberate. Sample articles keep the UI reviewable before keys exist. Expect to explain why the proxy exists and what a fourth source would touch.

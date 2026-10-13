@@ -4,6 +4,6 @@ client/dist
 server/dist
 .git
 .env
-.env.*
 *.log
-README.md
+.github
+scripts
