@@ -5,14 +5,17 @@ import { ArticleList } from "./components/ArticleList";
 import { FeedSummary } from "./components/FeedSummary";
 import { PreferencePanel } from "./components/PreferencePanel";
 import { SearchForm, type FeedFilters } from "./components/SearchForm";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { useArticles } from "./hooks/useArticles";
 import { usePreferences } from "./hooks/usePreferences";
 import { useSourceMeta } from "./hooks/useSourceMeta";
+import { useTheme } from "./hooks/useTheme";
 
 const EMPTY_FILTERS: FeedFilters = { source: "", category: "", from: "", to: "" };
 
 export function App() {
   const sourceMeta = useSourceMeta();
+  const { theme, toggleTheme } = useTheme();
   const { preferences, toggleSource, toggleCategory, addAuthor, removeAuthor, clearPreferences } = usePreferences();
   const [filters, setFilters] = useState<FeedFilters>(EMPTY_FILTERS);
   const [draft, setDraft] = useState("");
@@ -59,15 +62,18 @@ export function App() {
             <p className="eyebrow">News aggregator</p>
             <h1>Front page</h1>
           </div>
-          <button
-            type="button"
-            className="secondary preferences-toggle"
-            aria-expanded={preferencesOpen}
-            aria-controls="preferences"
-            onClick={() => setPreferencesOpen((open) => !open)}
-          >
-            {preferencesOpen ? "Hide preferences" : "Preferences"}
-          </button>
+          <div className="header-actions">
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+            <button
+              type="button"
+              className="secondary preferences-toggle"
+              aria-expanded={preferencesOpen}
+              aria-controls="preferences"
+              onClick={() => setPreferencesOpen((open) => !open)}
+            >
+              {preferencesOpen ? "Hide preferences" : "Preferences"}
+            </button>
+          </div>
         </div>
       </header>
 
