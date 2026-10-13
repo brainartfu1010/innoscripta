@@ -16,15 +16,17 @@ Open http://localhost:5173. Without API keys the app still runs on sample articl
 # Production-style local run (API + built UI on one port)
 npm run verify
 npm start
-# http://localhost:3000
 ```
+
+Open http://localhost:3000 (`PORT` defaults to 3000; `npm run dev` still uses API port 3001 beside Vite).
 
 ```bash
 # Docker (keys optional; sample mode works without them)
 cp .env.example .env
 docker compose up --build
-# http://localhost:3000
 ```
+
+Open http://localhost:3000.
 
 ## Requirements
 
@@ -84,7 +86,7 @@ The NewsAPI developer plan is for local development, allows about 100 requests a
 
 `GET /api/articles?q=&sources=guardian|nyt&categories=technology&from=2026-10-01&to=2026-10-13&authors=Ada%20Lovelace`
 
-Each source returns up to 15 articles. One failed source does not empty the feed; its message is returned in `errors`. Results are merged, deduped by URL, and sorted newest first. Author and date windows are applied again after the merge.
+Guardian and NewsAPI each return up to 15 articles per request; The New York Times Article Search returns up to 10. One failed source does not empty the feed; its message is returned in `errors`. Results are merged, deduped by URL, and sorted newest first. Author and date windows are applied again after the merge.
 
 ## Decisions and limits
 
