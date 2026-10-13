@@ -68,26 +68,26 @@ export function PreferencePanel({
       </fieldset>
 
       <form
+        className="field"
         onSubmit={(event) => {
           event.preventDefault();
           onAddAuthor(author);
           setAuthor("");
         }}
       >
-        <label className="field">
-          <span>Authors</span>
-          <span className="author-row">
-            <input
-              value={author}
-              onChange={(event) => setAuthor(event.target.value)}
-              placeholder="Add an author"
-              autoComplete="off"
-            />
-            <button type="submit" className="secondary">
-              Add
-            </button>
-          </span>
-        </label>
+        <label htmlFor="preference-author">Authors</label>
+        <div className="author-row">
+          <input
+            id="preference-author"
+            value={author}
+            onChange={(event) => setAuthor(event.target.value)}
+            placeholder="Add an author"
+            autoComplete="off"
+          />
+          <button type="submit" className="secondary">
+            Add
+          </button>
+        </div>
       </form>
       {preferences.authors.length > 0 ? (
         <ul className="chips">

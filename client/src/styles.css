@@ -76,7 +76,7 @@ h3 {
   font-family: var(--serif);
   font-weight: 600;
   letter-spacing: -0.02em;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 h1 {
@@ -205,15 +205,22 @@ main {
   background: var(--card);
   border-radius: 0.75rem;
   padding: 1rem;
+  width: 100%;
   min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.9rem;
+  box-sizing: border-box;
 }
 
 .layout.preferences-open .preferences,
 .preferences.is-open {
   display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-  order: -1;
+}
+
+.preferences > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .preferences h2 {
@@ -226,6 +233,7 @@ fieldset {
   padding: 0;
   border: 0;
   min-width: 0;
+  width: 100%;
 }
 
 legend {
@@ -242,7 +250,8 @@ legend {
   min-width: 0;
 }
 
-.field span {
+.field > span,
+.field > label {
   color: var(--muted);
   font-size: 0.9rem;
 }
@@ -295,7 +304,7 @@ select {
 .feed-summary {
   margin: 0;
   font-size: 0.95rem;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .article-card h3 a {
@@ -332,7 +341,7 @@ select {
 }
 
 .meta {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   font-size: 0.92rem;
 }
 
@@ -343,7 +352,7 @@ select {
   padding: 0.75rem 0.9rem;
   background: var(--banner);
   border: 1px solid var(--banner-line);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .banner.error,
@@ -404,19 +413,21 @@ select {
 
 .article-card p {
   margin: 0.35rem 0 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .check {
   display: flex;
   gap: 0.5rem;
-  align-items: center;
+  align-items: flex-start;
   min-width: 0;
+  width: 100%;
 }
 
 .check span:not(.tag) {
+  flex: 1 1 auto;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .check input {
@@ -456,7 +467,7 @@ select {
 
 .chip span {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .chip button {
@@ -475,7 +486,14 @@ select {
 
 .site-footer p {
   margin: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 859px) {
+  .layout.preferences-open .preferences,
+  .preferences.is-open {
+    order: -1;
+  }
 }
 
 @media (max-width: 479px) {
@@ -543,20 +561,25 @@ select {
   }
 
   .layout {
-    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+    grid-template-columns: minmax(0, 1fr) 300px;
     align-items: start;
     gap: 1.5rem;
     padding: 1.25rem 0 2.5rem;
   }
 
   .preferences,
-  .layout.preferences-open .preferences {
+  .layout.preferences-open .preferences,
+  .preferences.is-open {
     display: flex;
     order: 0;
     position: sticky;
     top: 1rem;
+    width: 300px;
+    max-width: 300px;
+    min-width: 300px;
     max-height: calc(100vh - 2rem);
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }
 
