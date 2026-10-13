@@ -14,7 +14,8 @@
     "build:client": "vite build --config client/vite.config.ts",
     "start": "node server/dist/index.js",
     "typecheck": "tsc -p server/tsconfig.json && tsc -p client/tsconfig.json",
-    "test": "tsx --test server/src/*.test.ts"
+    "test": "tsx --test server/src/*.test.ts",
+    "verify": "npm test && npm run typecheck && npm run build"
   },
   "dependencies": {
     "dotenv": "^16.4.7",

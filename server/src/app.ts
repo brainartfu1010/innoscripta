@@ -42,7 +42,11 @@ export function createApp(sources: NewsSource[]): Express {
   const clientDist = path.resolve(process.cwd(), "client/dist");
   if (existsSync(clientDist)) {
     app.use(express.static(clientDist));
-    app.get("*", (req, res, next) => {
+    app.use((req, res, next) => {
+      if (req.method !== "GET" && req.method !== "HEAD") {
+        next();
+        return;
+      }
       if (req.path.startsWith("/api")) {
         next();
         return;

@@ -2,6 +2,30 @@
 
 A news aggregator for the innoscripta frontend take-home. The React + TypeScript UI searches and filters articles from three publishers, and a small Node proxy keeps the API keys on the server.
 
+## Quick start
+
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Open http://localhost:5173. Without API keys the app still runs on sample articles so you can review search, filters, and preferences immediately.
+
+```bash
+# Production-style local run (API + built UI on one port)
+npm run verify
+npm start
+# http://localhost:3000
+```
+
+```bash
+# Docker (keys optional; sample mode works without them)
+cp .env.example .env
+docker compose up --build
+# http://localhost:3000
+```
+
 ## Requirements
 
 | Brief | Where it lives |
@@ -27,42 +51,7 @@ browser  →  Express  →  NewsSource adapters  →  Guardian / NYT / NewsAPI
 
 Preferences are the default feed. Choosing a source or category in the search form overrides that default until the filters are cleared. Author preferences always apply. Nothing here requires an account.
 
-Until API keys are set, the server returns a few sample articles and says so. That keeps the interface usable before the keys exist. Sample data stops as soon as any selected source has a key.
-
-## Run with Docker
-
-Docker is the intended way to run the submission.
-
-```bash
-cp .env.example .env
-# Fill in GUARDIAN_API_KEY, NYT_API_KEY, and NEWSAPI_API_KEY.
-docker compose up --build
-```
-
-Open http://localhost:3000.
-
-Compose reads `.env` for the key values and starts the app on port 3000. The image runs the tests and the TypeScript check before it builds the client.
-
-## Local development
-
-Requires Node.js 20 or newer.
-
-```bash
-npm install
-cp .env.example .env
-npm run dev
-```
-
-The API listens on http://localhost:3001 and the Vite app on http://localhost:5173. Vite proxies `/api` to the API.
-
-```bash
-npm test
-npm run typecheck
-npm run build
-npm start
-```
-
-`npm start` serves the built client and the API together on port 3000, or on `PORT` from the environment.
+Until API keys are set, the server returns sample articles and says so. When some keys are set, only those sources are queried; missing keys are reported without emptying the feed. Successful live responses are cached for 60 seconds.
 
 ## Keys
 
@@ -75,6 +64,17 @@ npm start
 Keys are read only on the server. Do not commit `.env`.
 
 The NewsAPI developer plan is for local development, allows about 100 requests a day, and delays new articles by 24 hours. The Guardian developer key is for non-commercial use and is enough to run this exercise locally. A public deployment of NewsAPI needs their paid plan.
+
+## Scripts
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Vite UI + API with hot reload |
+| `npm test` | Server unit tests |
+| `npm run typecheck` | TypeScript for client and server |
+| `npm run build` | Bundle server and client |
+| `npm run verify` | test + typecheck + build |
+| `npm start` | Serve the production build |
 
 ## API
 

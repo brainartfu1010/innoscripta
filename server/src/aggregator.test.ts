@@ -5,7 +5,7 @@ import type { SourceId } from "../../shared/catalog.ts";
 import { sourceName } from "../../shared/catalog.ts";
 import { stripHtml } from "./http.ts";
 import { parseArticleQuery } from "./query.ts";
-import { filterArticles, searchArticles } from "./search.ts";
+import { clearSearchCache, filterArticles, searchArticles } from "./search.ts";
 import type { NewsSource } from "./sources/news-source.ts";
 
 function query(overrides: Partial<ArticleQuery> = {}): ArticleQuery {
@@ -80,6 +80,7 @@ describe("text", () => {
 
 describe("searchArticles", () => {
   it("sorts newest first, dedupes urls, and filters authors", async () => {
+    clearSearchCache();
     const guardian = new FakeSource("guardian", [
       article({
         id: "g1",
@@ -113,6 +114,7 @@ describe("searchArticles", () => {
   });
 
   it("asks only the selected sources and keeps going when one fails", async () => {
+    clearSearchCache();
     const guardian = new FakeSource("guardian", new Error("Guardian returned HTTP 500"));
     const nyt = new FakeSource("nyt", [article({ id: "n1" })]);
     const newsapi = new FakeSource("newsapi", [article({ id: "a1", sourceId: "newsapi", url: "https://example.com/a" })]);
@@ -132,6 +134,7 @@ describe("searchArticles", () => {
   });
 
   it("serves filtered samples when no source has a key", async () => {
+    clearSearchCache();
     const sources = [
       new FakeSource("guardian", [], false),
       new FakeSource("nyt", [], false),
@@ -142,6 +145,18 @@ describe("searchArticles", () => {
     assert.equal(result.articles.length, 1);
     assert.match(result.articles[0]?.title ?? "", /battery/i);
     assert.equal(result.errors[0]?.source, "config");
+  });
+
+  it("skips unconfigured sources and uses the ones with keys", async () => {
+    clearSearchCache();
+    const guardian = new FakeSource("guardian", [], false);
+    const nyt = new FakeSource("nyt", [article({ id: "n1", url: "https://example.com/nyt-only" })]);
+    const result = await searchArticles([guardian, nyt], query());
+    assert.equal(guardian.calls, 0);
+    assert.equal(nyt.calls, 1);
+    assert.equal(result.articles[0]?.id, "n1");
+    assert.equal(result.errors[0]?.source, "guardian");
+    assert.match(result.errors[0]?.message ?? "", /skipped/i);
   });
 });
 

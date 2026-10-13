@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { isCategoryId, isSourceId, SOURCES } from "@shared/catalog";
 import type { ArticleQuery } from "@shared/article";
 import { ArticleList } from "./components/ArticleList";
+import { FeedSummary } from "./components/FeedSummary";
 import { PreferencePanel } from "./components/PreferencePanel";
 import { SearchForm, type FeedFilters } from "./components/SearchForm";
 import { useArticles } from "./hooks/useArticles";
@@ -97,6 +98,7 @@ export function App() {
               setFilters(EMPTY_FILTERS);
             }}
           />
+          <FeedSummary preferences={preferences} filters={filters} keyword={keyword} />
           <ArticleList status={feed.status} articles={feed.articles} errors={feed.errors} message={feed.message} />
         </main>
         <PreferencePanel

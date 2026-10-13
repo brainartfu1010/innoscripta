@@ -2,6 +2,9 @@ import type { Article, ArticleQuery, ArticleSearchResult } from "../../shared/ar
 import { SAMPLE_ARTICLES } from "./sample-articles.ts";
 import type { NewsSource } from "./sources/news-source.ts";
 
+const CACHE_TTL_MS = 60_000;
+const cache = new Map<string, { expiresAt: number; value: ArticleSearchResult }>();
+
 export async function searchArticles(sources: NewsSource[], query: ArticleQuery): Promise<ArticleSearchResult> {
   if (query.from && query.to && query.from > query.to) {
     return {
@@ -13,8 +16,10 @@ export async function searchArticles(sources: NewsSource[], query: ArticleQuery)
   const selected = query.sources.length
     ? sources.filter((source) => query.sources.includes(source.id))
     : sources;
+  const configured = selected.filter((source) => source.isConfigured());
+  const unconfigured = selected.filter((source) => !source.isConfigured());
 
-  if (selected.length > 0 && selected.every((source) => !source.isConfigured())) {
+  if (configured.length === 0) {
     const noneConfigured = sources.every((source) => !source.isConfigured());
     return {
       articles: filterArticles(SAMPLE_ARTICLES, query),
@@ -29,12 +34,32 @@ export async function searchArticles(sources: NewsSource[], query: ArticleQuery)
     };
   }
 
-  const settled = await Promise.allSettled(selected.map((source) => source.search(query)));
+  const cacheKey = JSON.stringify({
+    q: query.q ?? "",
+    sources: configured.map((source) => source.id).sort(),
+    categories: [...query.categories].sort(),
+    from: query.from ?? "",
+    to: query.to ?? "",
+    authors: [...query.authors].sort(),
+  });
+  const cached = cache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.value;
+  }
+
+  const settled = await Promise.allSettled(configured.map((source) => source.search(query)));
   const articles: Article[] = [];
   const errors: ArticleSearchResult["errors"] = [];
 
+  for (const source of unconfigured) {
+    errors.push({
+      source: source.id,
+      message: `${source.name} was skipped because its API key is missing.`,
+    });
+  }
+
   settled.forEach((result, index) => {
-    const source = selected[index];
+    const source = configured[index];
     if (result.status === "fulfilled") {
       articles.push(...result.value);
       return;
@@ -43,7 +68,13 @@ export async function searchArticles(sources: NewsSource[], query: ArticleQuery)
     errors.push({ source: source.id, message });
   });
 
-  return { articles: finalize(articles, query), errors };
+  const value = { articles: finalize(articles, query), errors };
+  cache.set(cacheKey, { expiresAt: Date.now() + CACHE_TTL_MS, value });
+  return value;
+}
+
+export function clearSearchCache(): void {
+  cache.clear();
 }
 
 export function filterArticles(articles: Article[], query: ArticleQuery): Article[] {

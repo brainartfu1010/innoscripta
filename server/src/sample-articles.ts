@@ -12,6 +12,9 @@ export const SAMPLE_ARTICLES: Article[] = [
   article("guardian", "culture", "Amelia Hart", "2026-10-02", "Museum opens its archive of protest posters", "The collection is digitized and free to browse on site."),
   article("newsapi", "health", "Jonas Keller", "2026-10-07", "Clinics expand evening vaccination hours", "Two hospital groups will stay open until 9 p.m. on weekdays."),
   article("newsapi", "business", "Priya Raman", "2026-09-20", "Regional banks outline climate risk scenarios", "The reports describe flood exposure for branch networks."),
+  article("guardian", "technology", "Grace Hopper", "2026-10-06", "Startups trial offline maps for rural clinics", "The apps keep pharmacy stock lists available without a signal."),
+  article("nyt", "politics", "Grace Hopper", "2026-10-05", "City hall releases draft rules for scooter lanes", "The proposal would reserve curb space near transit hubs."),
+  article("newsapi", "world", "Amelia Hart", "2026-10-04", "Coastal towns share a joint flood warning feed", "Three ports agreed to publish tide alerts on the same schedule."),
 ];
 
 function article(
