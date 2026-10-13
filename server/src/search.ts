@@ -5,7 +5,11 @@ import type { NewsSource } from "./sources/news-source.ts";
 const CACHE_TTL_MS = 60_000;
 const cache = new Map<string, { expiresAt: number; value: ArticleSearchResult }>();
 
-export async function searchArticles(sources: NewsSource[], query: ArticleQuery): Promise<ArticleSearchResult> {
+export async function searchArticles(
+  sources: NewsSource[],
+  query: ArticleQuery,
+  cacheSalt = "",
+): Promise<ArticleSearchResult> {
   if (query.from && query.to && query.from > query.to) {
     return {
       articles: [],
@@ -27,7 +31,7 @@ export async function searchArticles(sources: NewsSource[], query: ArticleQuery)
         {
           source: "config",
           message: noneConfigured
-            ? "No API keys are configured, so these are sample articles."
+            ? "No API keys are configured, so these are sample articles. Open Settings to add keys."
             : "The selected sources have no API keys, so these are sample articles.",
         },
       ],
@@ -35,6 +39,7 @@ export async function searchArticles(sources: NewsSource[], query: ArticleQuery)
   }
 
   const cacheKey = JSON.stringify({
+    salt: cacheSalt,
     q: query.q ?? "",
     sources: configured.map((source) => source.id).sort(),
     categories: [...query.categories].sort(),

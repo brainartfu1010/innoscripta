@@ -2,11 +2,12 @@ import express, { type Express } from "express";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { CATEGORIES } from "../../shared/catalog.ts";
+import { apiKeyCacheSalt, resolveApiKeys } from "./api-keys.ts";
 import { parseArticleQuery } from "./query.ts";
 import { searchArticles } from "./search.ts";
-import type { NewsSource } from "./sources/news-source.ts";
+import { createSources } from "./sources/registry.ts";
 
-export function createApp(sources: NewsSource[]): Express {
+export function createApp(): Express {
   const app = express();
   app.disable("x-powered-by");
 
@@ -14,7 +15,9 @@ export function createApp(sources: NewsSource[]): Express {
     res.json({ ok: true });
   });
 
-  app.get("/api/meta", (_req, res) => {
+  app.get("/api/meta", (req, res) => {
+    const keys = resolveApiKeys(req);
+    const sources = createSources(keys);
     res.json({
       sources: sources.map((source) => ({
         id: source.id,
@@ -28,7 +31,8 @@ export function createApp(sources: NewsSource[]): Express {
   app.get("/api/articles", async (req, res) => {
     const params = new URL(req.originalUrl, "http://localhost").searchParams;
     try {
-      const result = await searchArticles(sources, parseArticleQuery(params));
+      const keys = resolveApiKeys(req);
+      const result = await searchArticles(createSources(keys), parseArticleQuery(params), apiKeyCacheSalt(keys));
       res.json(result);
     } catch (error) {
       console.error(error);

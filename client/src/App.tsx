@@ -5,7 +5,9 @@ import { ArticleList } from "./components/ArticleList";
 import { FeedSummary } from "./components/FeedSummary";
 import { PreferencePanel } from "./components/PreferencePanel";
 import { SearchForm, type FeedFilters } from "./components/SearchForm";
+import { SettingsPanel } from "./components/SettingsPanel";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { useApiKeys } from "./hooks/useApiKeys";
 import { useArticles } from "./hooks/useArticles";
 import { usePreferences } from "./hooks/usePreferences";
 import { useSourceMeta } from "./hooks/useSourceMeta";
@@ -14,13 +16,15 @@ import { useTheme } from "./hooks/useTheme";
 const EMPTY_FILTERS: FeedFilters = { source: "", category: "", from: "", to: "" };
 
 export function App() {
-  const sourceMeta = useSourceMeta();
+  const { keys, revision, save, clear } = useApiKeys();
+  const sourceMeta = useSourceMeta(keys, revision);
   const { theme, toggleTheme } = useTheme();
   const { preferences, toggleSource, toggleCategory, addAuthor, removeAuthor, clearPreferences } = usePreferences();
   const [filters, setFilters] = useState<FeedFilters>(EMPTY_FILTERS);
   const [draft, setDraft] = useState("");
   const [keyword, setKeyword] = useState("");
   const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const request = useMemo<ArticleQuery>(
     () => ({
@@ -34,7 +38,7 @@ export function App() {
     [keyword, filters, preferences],
   );
 
-  const feed = useArticles(request);
+  const feed = useArticles(request, keys, revision);
   const configError = feed.errors.find((error) => error.source === "config");
   const sourceErrors = feed.errors.filter((error) => error.source !== "config" && error.source !== "query");
   const queryError = feed.errors.find((error) => error.source === "query");
@@ -64,6 +68,9 @@ export function App() {
           </div>
           <div className="header-actions">
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
+            <button type="button" className="secondary" onClick={() => setSettingsOpen(true)}>
+              Settings
+            </button>
             <button
               type="button"
               className="secondary preferences-toggle"
@@ -79,7 +86,14 @@ export function App() {
 
       <div className={preferencesOpen ? "layout preferences-open" : "layout"}>
         <main>
-          {configError ? <p className="banner">{configError.message}</p> : null}
+          {configError ? (
+            <div className="banner banner-with-action">
+              <p>{configError.message}</p>
+              <button type="button" className="secondary" onClick={() => setSettingsOpen(true)}>
+                Settings
+              </button>
+            </div>
+          ) : null}
           {queryError ? <p className="banner error">{queryError.message}</p> : null}
           {sourceErrors.length > 0 ? (
             <ul className="error-list">
@@ -124,6 +138,13 @@ export function App() {
           publisher’s site.
         </p>
       </footer>
+      <SettingsPanel
+        open={settingsOpen}
+        keys={keys}
+        onClose={() => setSettingsOpen(false)}
+        onSave={save}
+        onClear={clear}
+      />
     </>
   );
 }

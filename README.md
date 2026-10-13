@@ -57,13 +57,17 @@ Until API keys are set, the server returns sample articles and says so. When som
 
 ## Keys
 
-| Variable | Register |
-| --- | --- |
-| `GUARDIAN_API_KEY` | https://open-platform.theguardian.com/access/ |
-| `NYT_API_KEY` | https://developer.nytimes.com/ — enable Article Search |
-| `NEWSAPI_API_KEY` | https://newsapi.org/register |
+Use the in-app **Settings** button to paste keys. They stay in this browser’s `localStorage` and are sent only to this app’s API as request headers.
 
-Keys are read only on the server. Do not commit `.env`.
+You can also put keys in `.env` on the server; those are used when the browser does not send a value.
+
+| Variable / Settings field | Register |
+| --- | --- |
+| `GUARDIAN_API_KEY` / The Guardian | https://open-platform.theguardian.com/access/ |
+| `NYT_API_KEY` / New York Times | https://developer.nytimes.com/ — enable Article Search |
+| `NEWSAPI_API_KEY` / NewsAPI.org | https://newsapi.org/register |
+
+Do not commit `.env` or paste production keys into a public demo.
 
 The NewsAPI developer plan is for local development, allows about 100 requests a day, and delays new articles by 24 hours. The Guardian developer key is for non-commercial use and is enough to run this exercise locally. A public deployment of NewsAPI needs their paid plan.
 

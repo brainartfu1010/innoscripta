@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Article, ArticleQuery, SourceError } from "@shared/article";
 import { fetchArticles } from "../api";
+import type { ApiKeys } from "../apiKeys";
 
 export interface FeedState {
   status: "loading" | "ready" | "error";
@@ -9,7 +10,7 @@ export interface FeedState {
   message: string;
 }
 
-export function useArticles(query: ArticleQuery): FeedState {
+export function useArticles(query: ArticleQuery, keys: ApiKeys, keysRevision: number): FeedState {
   const serialized = JSON.stringify(query);
   const [state, setState] = useState<FeedState>({
     status: "loading",
@@ -23,7 +24,7 @@ export function useArticles(query: ArticleQuery): FeedState {
     const controller = new AbortController();
     setState((current) => ({ ...current, status: "loading", message: "" }));
 
-    fetchArticles(parsed, controller.signal)
+    fetchArticles(parsed, controller.signal, keys)
       .then((result) => {
         setState({
           status: "ready",
@@ -43,7 +44,7 @@ export function useArticles(query: ArticleQuery): FeedState {
       });
 
     return () => controller.abort();
-  }, [serialized]);
+  }, [serialized, keys, keysRevision]);
 
   return state;
 }
